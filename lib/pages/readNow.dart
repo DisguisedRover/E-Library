@@ -1,3 +1,4 @@
+import 'package:book_library/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import '../models/books.dart';
@@ -14,7 +15,7 @@ class ReadNow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(book.name),
+        title: Text(book.title),
         backgroundColor: const Color(0xFF42A5F5),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -23,32 +24,23 @@ class ReadNow extends StatelessWidget {
           },
         ),
       ),
-      body: book.pdf.isNotEmpty
-          ? FutureBuilder(
-              future: _loadPdf(book.pdf),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: Unable to load PDF\n${snapshot.error}',
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                }
-                return SfPdfViewer.asset(snapshot.data as String);
-              },
-            )
-          : const Center(
-              child: Text('PDF file is missing or unavailable.'),
-            ),
+      body: _buildPdfViewer(),
     );
   }
 
-  Future<String> _loadPdf(String path) async {
-    // Simulate loading for debugging
-    await Future.delayed(const Duration(milliseconds: 500));
-    return path; // Return the path if it exists
+  Widget _buildPdfViewer() {
+    if (book.pdfPath != null) {
+      final fullPdfUrl = ApiService.getFullUrl(book.pdfPath!);
+      return SfPdfViewer.network(
+        fullPdfUrl,
+        onDocumentLoadFailed: (details) {
+          print('Failed to load PDF: ${details.description}');
+        },
+      );
+    } else {
+      return const Center(
+        child: Text('PDF file is missing or unavailable.'),
+      );
+    }
   }
 }

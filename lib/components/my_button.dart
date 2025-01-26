@@ -3,11 +3,17 @@ import 'package:flutter/material.dart';
 class MyButton extends StatelessWidget {
   final String text;
   final void Function()? onTap;
+  final TextStyle? style;
+  final Color? color;
+  final Padding? padding;
 
   const MyButton({
     super.key,
     required this.text,
     required this.onTap,
+    this.style,
+    this.color,
+    this.padding,
   });
 
   @override

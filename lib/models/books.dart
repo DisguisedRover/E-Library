@@ -1,28 +1,73 @@
-/// Represents a book in the library.
+import 'package:book_library/services/api_service.dart';
+
 class Book {
-  final String name; // Title of the book
-  final BookFaculty faculty; // Associated faculty
-  final String imagepath; // Path to the book's image
-  final String description; // Description of the book
-  final String pdf;
+  final int id;
+  final String title;
+  final BookFaculty faculty;
+  final String imagepath;
+  final String description;
+  final String? pdfPath;
+  final String? author;
 
   const Book({
-    required this.name,
+    required this.id,
+    required this.title,
     required this.faculty,
     required this.imagepath,
     required this.description,
-    required this.pdf,
+    this.pdfPath,
+    this.author,
   });
+
+  factory Book.fromJson(Map<String, dynamic> json) {
+    // Print debugging information
+    print('Received JSON: $json');
+
+    try {
+      return Book(
+        id: json['id'] ?? 0,
+        title: json['title'] ?? '',
+        faculty: _getFacultyFromString(json['faculty']),
+        author: json['author'],
+        description: json['description'] ?? '',
+        imagepath: ApiService.getFullUrl(json[
+            'imagePath']), // Use imagePath instead of imagepath to match backend
+        pdfPath: ApiService.getFullUrl(json['pdf_Path']),
+      );
+    } catch (e) {
+      print('Error parsing JSON: $e');
+      rethrow;
+    }
+  }
+
+  static BookFaculty _getFacultyFromString(dynamic facultyValue) {
+    if (facultyValue == null) return BookFaculty.BIM;
+
+    String facultyStr = facultyValue.toString().toUpperCase();
+    switch (facultyStr) {
+      case 'BHM':
+        return BookFaculty.BHM;
+      case 'BIM':
+      default:
+        return BookFaculty.BIM;
+    }
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'faculty': faculty.toString().split('.').last,
+        'author': author,
+        'description': description,
+        'imagePath': imagepath,
+        'pdf_Path': pdfPath,
+      };
 }
 
-/// Enum representing faculties to which books belong.
 enum BookFaculty {
   BIM,
-  BHM,
-}
+  BHM;
 
-/// Extension to provide readable names for [BookFaculty].
-extension BookFacultyExtension on BookFaculty {
   String get displayName {
     switch (this) {
       case BookFaculty.BIM:
